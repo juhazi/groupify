@@ -22,11 +22,13 @@ module Groupify
         end
 
         if ActiveSupport::VERSION::MAJOR > 3
-          has_many :groups, ->{ uniq },
-                   through: :group_memberships_as_member,
-                   as: :group,
-                   source_type: @group_class_name,
-                   extend: GroupAssociationExtensions
+          has_many :groups, ->{ uniq }, {
+                    through: :group_memberships_as_member,
+                    as: :group,
+                    source_type: @group_class_name,
+                    extend: GroupAssociationExtensions
+                  },
+                  &@group_member_extension_block
         else
           has_many :groups,
                    uniq: true,

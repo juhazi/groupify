@@ -14,8 +14,8 @@ module Groupify
       end
 
       module ClassMethods
-        def groupify(type, opts = {})
-          send("acts_as_#{type}", opts)
+        def groupify(type, opts = {}, &block)
+          send("acts_as_#{type}", opts, &block)
         end
 
         def acts_as_group(opts = {})
@@ -30,8 +30,9 @@ module Groupify
           end
         end
 
-        def acts_as_group_member(opts = {})
+        def acts_as_group_member(opts = {}, &block)
           @group_class_name = opts[:group_class_name] || Groupify.group_class_name
+          @group_member_extension_block = block
           include Groupify::ActiveRecord::GroupMember
         end
 

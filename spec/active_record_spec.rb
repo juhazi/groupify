@@ -37,7 +37,12 @@ end
 require 'groupify/adapter/active_record'
 
 class User < ActiveRecord::Base
-  groupify :group_member
+  groupify :group_member do
+    def my_owner_id
+      proxy_association.owner.id
+    end
+  end
+
   groupify :named_group_member
 end
 
@@ -215,6 +220,10 @@ describe Groupify::ActiveRecord do
       expect(group.member_classes).to include(User, Widget)
 
       expect(Organization.member_classes).to include(User, Widget, Manager)
+    end
+
+    it "allows extensions to the ActiveRecord relations" do
+      expect(user.groups.my_owner_id).to eql(user.id)
     end
 
     it "finds members by group" do
