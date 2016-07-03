@@ -147,6 +147,63 @@ module Groupify
           in_any_group(other.groups)
         end
 
+        # Define which group subclasses can have this class as a member
+        def has_groups(*names)
+          Array.wrap(names.flatten).each do |name|
+            klass = name.to_s.classify.constantize
+            register_group(klass)
+          end
+        end
+
+        protected
+
+        def register_group(group_klass)
+          (@group_klasses ||= Set.new) << group_klass
+
+          define_group_association group_klass
+
+          group_klass
+        end
+
+        def define_group_association(group_klass)
+          association_name = group_klass.model_name.plural.to_sym
+
+          has_many association_name, *group_association_options(group_klass)
+
+          define_method(association_name) do |*args|
+            opts = args.extract_options!
+            membership_type = opts[:as]
+            if membership_type.present?
+              super().as(membership_type)
+            else
+              super()
+            end
+          end
+        end
+
+        def group_association_options(group_klass)
+          source_type = group_klass.base_class
+
+          base_options = {
+            through: :group_memberships_as_member,
+            as: :group,
+            source: :group,
+            source_type: source_type,
+            extend: GroupAssociationExtensions
+          }
+
+          if ActiveSupport::VERSION::MAJOR > 3
+            filter = -> { uniq.where("#{group_klass.table_name}.type = ?", group_klass.name.to_s) }
+            [
+              filter,
+              base_options
+            ]
+          else
+            options = base_options.merge(uniq: true)
+            options.merge!(conditions: ["#{group_klass.table_name}.type = ?", group_klass.name.to_s])
+            [options]
+          end
+        end
       end
     end
   end

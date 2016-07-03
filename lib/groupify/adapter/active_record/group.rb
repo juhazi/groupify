@@ -71,7 +71,7 @@ module Groupify
         def has_members(*names)
           Array.wrap(names.flatten).each do |name|
             klass = name.to_s.classify.constantize
-            register(klass)
+            register_member(klass)
           end
         end
 
@@ -93,7 +93,7 @@ module Groupify
 
         protected
 
-        def register(member_klass)
+        def register_member(member_klass)
           (@member_klasses ||= Set.new) << member_klass
 
           associate_member_class(member_klass)

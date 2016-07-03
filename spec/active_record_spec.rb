@@ -68,6 +68,12 @@ class Organization < Group
   has_members :managers, :organizations
 end
 
+# All classes are declared in one file == have to load Manager twice
+# Once before Organization and once after
+class Manager < User
+  has_groups :organizations
+end
+
 class GroupMembership < ActiveRecord::Base
   groupify :group_membership
 end
@@ -216,6 +222,18 @@ describe Groupify::ActiveRecord do
         child_org = Organization.create!
         parent_org.add(child_org)
         expect(parent_org.organizations).to include(child_org)
+      end
+
+      it "adds a group using STI to a member" do
+        manager = Manager.create!
+        group = Group.create!
+        organization = Organization.create!
+
+        group.add manager
+        organization.add manager
+
+        expect(manager.groups).to match_array [group, organization]
+        expect(manager.organizations).to match_array [organization]
       end
     end
 
