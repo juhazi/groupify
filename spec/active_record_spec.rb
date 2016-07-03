@@ -37,7 +37,10 @@ end
 require 'groupify/adapter/active_record'
 
 class User < ActiveRecord::Base
-  groupify :group_member
+  groupify :group_member, association_options: {
+    autosave: true
+  }
+
   groupify :named_group_member
 end
 
@@ -215,6 +218,10 @@ describe Groupify::ActiveRecord do
       expect(group.member_classes).to include(User, Widget)
 
       expect(Organization.member_classes).to include(User, Widget, Manager)
+    end
+
+    it "allows custom options to groups association" do
+      expect(User.reflections["groups"].options[:autosave]).to be_true
     end
 
     it "finds members by group" do

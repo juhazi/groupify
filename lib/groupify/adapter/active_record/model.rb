@@ -32,6 +32,7 @@ module Groupify
 
         def acts_as_group_member(opts = {})
           @group_class_name = opts[:group_class_name] || Groupify.group_class_name
+          @group_member_association_options = opts[:association_options] || {}
           include Groupify::ActiveRecord::GroupMember
         end
 

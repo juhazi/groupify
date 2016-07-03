@@ -21,19 +21,26 @@ module Groupify
                    class_name: Groupify.group_membership_class_name
         end
 
+        default_options = {
+          through: :group_memberships_as_member,
+          as: :group,
+          source_type: @group_class_name,
+          extend: GroupAssociationExtensions
+        }
+
         if ActiveSupport::VERSION::MAJOR > 3
-          has_many :groups, ->{ uniq },
-                   through: :group_memberships_as_member,
-                   as: :group,
-                   source_type: @group_class_name,
-                   extend: GroupAssociationExtensions
+          options = default_options
+          .merge @group_member_association_options
+
+          has_many :groups, ->{ uniq }, options
         else
-          has_many :groups,
-                   uniq: true,
-                   through: :group_memberships_as_member,
-                   as: :group,
-                   source_type: @group_class_name,
-                   extend: GroupAssociationExtensions
+          options = default_options
+          .merge({
+            uniq: true,
+          })
+          .merge @group_member_association_options
+
+          has_many :groups, options
         end
       end
 
